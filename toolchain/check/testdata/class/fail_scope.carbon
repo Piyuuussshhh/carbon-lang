@@ -8,29 +8,30 @@ class Class {
   fn F() -> i32 {
     return 1;
   }
-
-  // TODO: This `F()` should find `Class.F`.
-  fn G() -> i32 {
-    // CHECK:STDERR: fail_scope.carbon:[[@LINE+3]]:12: ERROR: Name `F` not found.
-    // CHECK:STDERR:     return F();
-    // CHECK:STDERR:            ^
-    return F();
-  }
 }
 
+fn G() -> i32 {
+  // CHECK:STDERR: fail_scope.carbon:[[@LINE+3]]:10: ERROR: Name `F` not found.
+  // CHECK:STDERR:   return F();
+  // CHECK:STDERR:          ^
+  return F();
+}
+
+// CHECK:STDOUT: constants {
+// CHECK:STDOUT:   %.loc11: type = struct_type {}
+// CHECK:STDOUT: }
+// CHECK:STDOUT:
 // CHECK:STDOUT: file "fail_scope.carbon" {
-// CHECK:STDOUT:   class_declaration @Class, ()
+// CHECK:STDOUT:   class_decl @Class, ()
 // CHECK:STDOUT:   %Class: type = class_type @Class
-// CHECK:STDOUT:   %.loc19: type = struct_type {}
+// CHECK:STDOUT:   %G: <function> = fn_decl @G
 // CHECK:STDOUT: }
 // CHECK:STDOUT:
 // CHECK:STDOUT: class @Class {
 // CHECK:STDOUT:   %F: <function> = fn_decl @F
-// CHECK:STDOUT:   %G: <function> = fn_decl @G
 // CHECK:STDOUT:
 // CHECK:STDOUT: !members:
 // CHECK:STDOUT:   .F = %F
-// CHECK:STDOUT:   .G = %G
 // CHECK:STDOUT: }
 // CHECK:STDOUT:
 // CHECK:STDOUT: fn @F() -> i32 {
@@ -41,6 +42,6 @@ class Class {
 // CHECK:STDOUT:
 // CHECK:STDOUT: fn @G() -> i32 {
 // CHECK:STDOUT: !entry:
-// CHECK:STDOUT:   %F.ref: <error> = name_reference "F", <error>
+// CHECK:STDOUT:   %F.ref: <error> = name_reference F, <error>
 // CHECK:STDOUT:   return <error>
 // CHECK:STDOUT: }

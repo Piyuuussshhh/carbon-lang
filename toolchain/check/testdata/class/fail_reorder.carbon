@@ -25,10 +25,13 @@ class Class {
   }
 }
 
-// CHECK:STDOUT: file "fail_reorder.carbon" {
-// CHECK:STDOUT:   class_declaration @Class, ()
-// CHECK:STDOUT:   %Class: type = class_type @Class
+// CHECK:STDOUT: constants {
 // CHECK:STDOUT:   %.loc26: type = struct_type {}
+// CHECK:STDOUT: }
+// CHECK:STDOUT:
+// CHECK:STDOUT: file "fail_reorder.carbon" {
+// CHECK:STDOUT:   class_decl @Class, ()
+// CHECK:STDOUT:   %Class: type = class_type @Class
 // CHECK:STDOUT: }
 // CHECK:STDOUT:
 // CHECK:STDOUT: class @Class {
@@ -42,8 +45,8 @@ class Class {
 // CHECK:STDOUT:
 // CHECK:STDOUT: fn @G() -> i32 {
 // CHECK:STDOUT: !entry:
-// CHECK:STDOUT:   %Class.ref: type = name_reference "Class", file.%Class
-// CHECK:STDOUT:   %F.ref: <error> = name_reference "F", <error>
+// CHECK:STDOUT:   %Class.ref: type = name_reference Class, file.%Class
+// CHECK:STDOUT:   %F.ref: <error> = name_reference F, <error>
 // CHECK:STDOUT:   return <error>
 // CHECK:STDOUT: }
 // CHECK:STDOUT:

@@ -133,13 +133,6 @@ class TokenLocationTranslator : public DiagnosticLocationTranslator<Token> {
 // `HasError` returning true.
 class TokenizedBuffer : public Printable<TokenizedBuffer> {
  public:
-  // Lexes a buffer of source code into a tokenized buffer.
-  //
-  // The provided source buffer must outlive any returned `TokenizedBuffer`
-  // which will refer into the source.
-  static auto Lex(SharedValueStores& value_stores, SourceBuffer& source,
-                  DiagnosticConsumer& consumer) -> TokenizedBuffer;
-
   [[nodiscard]] auto GetKind(Token token) const -> TokenKind;
   [[nodiscard]] auto GetLine(Token token) const -> Line;
 
@@ -154,7 +147,7 @@ class TokenizedBuffer : public Printable<TokenizedBuffer> {
 
   // Returns the identifier associated with this token. The token kind must be
   // an `Identifier`.
-  [[nodiscard]] auto GetIdentifier(Token token) const -> StringId;
+  [[nodiscard]] auto GetIdentifier(Token token) const -> IdentifierId;
 
   // Returns the value of an `IntegerLiteral()` token.
   [[nodiscard]] auto GetIntegerLiteral(Token token) const -> IntegerId;
@@ -163,7 +156,7 @@ class TokenizedBuffer : public Printable<TokenizedBuffer> {
   [[nodiscard]] auto GetRealLiteral(Token token) const -> RealId;
 
   // Returns the value of a `StringLiteral()` token.
-  [[nodiscard]] auto GetStringLiteral(Token token) const -> StringId;
+  [[nodiscard]] auto GetStringLiteral(Token token) const -> StringLiteralId;
 
   // Returns the size specified in a `*TypeLiteral()` token.
   [[nodiscard]] auto GetTypeLiteralSize(Token token) const
@@ -243,10 +236,7 @@ class TokenizedBuffer : public Printable<TokenizedBuffer> {
   auto filename() const -> llvm::StringRef { return source_->filename(); }
 
  private:
-  // Implementation detail struct implementing the actual lexer logic.
-  class Lexer;
-  friend Lexer;
-
+  friend class Lexer;
   friend class TokenLocationTranslator;
 
   // A diagnostic location translator that maps token locations into source
@@ -300,7 +290,8 @@ class TokenizedBuffer : public Printable<TokenizedBuffer> {
           sizeof(Token) <= sizeof(int32_t),
           "Unable to pack token and identifier index into the same space!");
 
-      StringId string_id = StringId::Invalid;
+      IdentifierId ident_id = IdentifierId::Invalid;
+      StringLiteralId string_literal_id;
       IntegerId integer_id;
       RealId real_id;
       Token closing_token;
@@ -334,9 +325,8 @@ class TokenizedBuffer : public Printable<TokenizedBuffer> {
   };
 
   // The constructor is merely responsible for trivial initialization of
-  // members. A working object of this type is built with the `lex` function
-  // above so that its return can indicate if an error was encountered while
-  // lexing.
+  // members. A working object of this type is built with `Lex::Lex` so that its
+  // return can indicate if an error was encountered while lexing.
   explicit TokenizedBuffer(SharedValueStores& value_stores,
                            SourceBuffer& source)
       : value_stores_(&value_stores), source_(&source) {}

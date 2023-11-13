@@ -9,7 +9,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "toolchain/sem_ir/file.h"
-#include "toolchain/sem_ir/node.h"
+#include "toolchain/sem_ir/inst.h"
 
 namespace Carbon::Lower {
 
@@ -46,6 +46,9 @@ class FileContext {
     return llvm::ConstantStruct::get(GetTypeType());
   }
 
+  // Returns a global value for the given instruction.
+  auto GetGlobal(SemIR::InstId inst_id) -> llvm::Value*;
+
   auto llvm_context() -> llvm::LLVMContext& { return *llvm_context_; }
   auto llvm_module() -> llvm::Module& { return *llvm_module_; }
   auto sem_ir() -> const SemIR::File& { return *sem_ir_; }
@@ -53,16 +56,15 @@ class FileContext {
  private:
   // Builds the declaration for the given function, which should then be cached
   // by the caller.
-  auto BuildFunctionDeclaration(SemIR::FunctionId function_id)
-      -> llvm::Function*;
+  auto BuildFunctionDecl(SemIR::FunctionId function_id) -> llvm::Function*;
 
   // Builds the definition for the given function. If the function is only a
   // declaration with no definition, does nothing.
   auto BuildFunctionDefinition(SemIR::FunctionId function_id) -> void;
 
-  // Builds the type for the given node, which should then be cached by the
-  // caller.
-  auto BuildType(SemIR::NodeId node_id) -> llvm::Type*;
+  // Builds the type for the given instruction, which should then be cached by
+  // the caller.
+  auto BuildType(SemIR::InstId inst_id) -> llvm::Type*;
 
   // Returns the empty LLVM struct type used to represent the type `type`.
   auto GetTypeType() -> llvm::StructType* {
@@ -92,6 +94,9 @@ class FileContext {
 
   // Lowered version of the builtin type `type`.
   llvm::StructType* type_type_ = nullptr;
+
+  // Maps global instructions to their lowered values.
+  llvm::DenseMap<SemIR::InstId, llvm::Value*> globals_;
 };
 
 }  // namespace Carbon::Lower
